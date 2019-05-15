@@ -15,11 +15,12 @@ export type MethodProxy = (arg: {}) => Promise<string>
 /**
  * Create a function that calls a soap method referenced by `path` 
  * @param client `node-soap` client
+ * @param raw flag to allow method results without error codes
  * @param path list of namespaces leading to the method and
  * the method e.g. `MyNamespace.SubNamespace.MyMethod` is equivalent to
  * `[MyNamespace, SubNamespace, MyMethod]`
  */
-export function asyncMethod(client: Client, ...path: string[]): MethodProxy {
+export function asyncMethod(client: Client, raw: boolean, ...path: string[]): MethodProxy {
   // get the method
   let method: any = path.reduce((x, k) => x[k], client)
   let mainMethod = path[path.length - 1]
@@ -33,9 +34,10 @@ export function asyncMethod(client: Client, ...path: string[]): MethodProxy {
         let response = x[`${mainMethod}Result`]
         let [code, result] = response.split('|')
 
-        console.log(response, x)
-        // response doesn't follow normal format
-        if (!code) return reject({ code: 1000, message: response })
+        // only ignore codes when raw flag is on
+        if (!result) {
+          return raw ? resolve(response) : reject({ code: 1000, message: response })
+        }
 
         if (code !== '00') return reject({ code, message: result.trim() })
         else return resolve(result.trim())

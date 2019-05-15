@@ -14,15 +14,16 @@ export class SoapService {
 
   /**
    * Create a function that calls a soap method referenced by `path`
+   * @param raw flag to allow method results without error codes
    * @param path list of namespaces leading to the method and 
    * the method e.g. `MyNamespace.SubNamespace.MyMethod` is equivalent to
    * `[MyNamespace, SubNamespace, MyMethod]`
    */
-  getMethod(...path: string[]): MethodProxy {
+  getMethod(raw: boolean, ...path: string[]): MethodProxy {
     let key = path.join('.')
     // cache method for later use
     if (!this.methods[key]) {
-      this.methods[key] = asyncMethod(this.client, ...path)
+      this.methods[key] = asyncMethod(this.client, raw, ...path)
     }
     return this.methods[key]
   }
@@ -30,11 +31,12 @@ export class SoapService {
   /**
    * Rather than get the method, call the method directly
    * @param arg data to send to soap service
+   * @param raw flag to allow method results without error codes
    * @param path list of namespaces to reach the method, same as 
    * `SoapService.getMethod`
    */
-  call(arg: {}, ...path: string[]): Promise<string> {
-    let method = this.getMethod(...path)
+  call(arg: {}, raw: boolean, ...path: string[]): Promise<string> {
+    let method = this.getMethod(raw, ...path)
     return method(arg)
   }
 }
