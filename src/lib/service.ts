@@ -30,12 +30,12 @@ export class SoapService {
 
   /**
    * Rather than get the method, call the method directly
-   * @param arg data to send to soap service
    * @param raw flag to allow method results without error codes
+   * @param arg data to send to soap service
    * @param path list of namespaces to reach the method, same as 
    * `SoapService.getMethod`
    */
-  call(arg: {}, raw: boolean, ...path: string[]): Promise<string> {
+  call(raw: boolean, arg: {}, ...path: string[]): Promise<string> {
     let method = this.getMethod(raw, ...path)
     return method(arg)
   }
