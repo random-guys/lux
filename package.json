@@ -1,0 +1,34 @@
+{
+  "name": "@random-guys/lux",
+  "version": "1.0.0",
+  "description": "Abstract a soap service as a class",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p ./tsconfig.json",
+    "watch": "tsc -w -p ./tsconfig.json",
+    "test": "jest --detectOpenHandles --runInBand --forceExit"
+  },
+  "author": "Olakunle Arewa <olakunle.arewa@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "soap": "^0.27.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.12",
+    "@types/node": "^10.14.4",
+    "@types/supertest": "^2.0.7",
+    "jest": "^24.8.0",
+    "supertest": "^3.4.2",
+    "ts-jest": "^24.0.2",
+    "typescript": "^3.2.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/random-guys/lux.git"
+  },
+  "bugs": {
+    "url": "https://github.com/random-guys/lux/issues"
+  },
+  "homepage": "https://github.com/random-guys/lux#readme"
+}
