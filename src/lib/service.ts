@@ -1,5 +1,6 @@
 import { Client } from "soap";
-import { asyncMethod, MethodProxy } from "./method";
+import { asyncMethod } from "./method";
+import { MethodProxy } from "./utils";
 
 export class SoapService {
   private readonly methods = {}

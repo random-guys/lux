@@ -1,16 +1,5 @@
 import { Client } from "soap";
-
-/**
- * Describes a soap response from a soap service
- */
-export interface MethodResult {
-  [key: string]: string
-}
-
-/**
- * SOAP method as an async function
- */
-export type MethodProxy = (arg: {}) => Promise<string>
+import { MethodResult, MethodError, MethodProxy } from "./utils";
 
 /**
  * Create a function that calls a soap method referenced by `path` 
@@ -27,7 +16,7 @@ export function asyncMethod(client: Client, raw: boolean, ...path: string[]): Me
 
   // return an async wrapper around the function
   return (payload: {}) => {
-    return new Promise<string>((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       method(payload, (err: any, x: MethodResult) => {
         if (err) return reject(err)
 
@@ -36,11 +25,13 @@ export function asyncMethod(client: Client, raw: boolean, ...path: string[]): Me
 
         // only ignore codes when raw flag is on
         if (!result) {
-          return raw ? resolve(response) : reject({ code: 1000, message: response })
+          return raw ? resolve(response) : reject(new MethodError('1000', x, response))
         }
 
-        if (code !== '00') return reject({ code, message: result.trim() })
-        else return resolve(result.trim())
+        if (code !== '00')
+          return reject(new MethodError(code, x, result.trim()))
+        else
+          return resolve(result.trim())
       })
     })
   }
