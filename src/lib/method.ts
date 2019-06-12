@@ -1,38 +1,45 @@
 import { Client } from "soap";
-import { MethodResult, MethodError, MethodProxy } from "./utils";
+import { promisify } from "util";
+import { MethodError } from "./error";
+import { MethodMaker, MethodResult } from "./types";
+import { compose } from "./utils";
 
 /**
- * Create a function that calls a soap method referenced by `path` 
- * @param client `node-soap` client
- * @param raw flag to allow method results without error codes
- * @param path list of namespaces leading to the method and
- * the method e.g. `MyNamespace.SubNamespace.MyMethod` is equivalent to
- * `[MyNamespace, SubNamespace, MyMethod]`
+ * Convert a method path to a function
+ * @param client SOAP client
+ * @param path method path
  */
-export function asyncMethod(client: Client, raw: boolean, ...path: string[]): MethodProxy {
-  // get the method
-  let method: any = path.reduce((x, k) => x[k], client)
-  let mainMethod = path[path.length - 1]
+export const pathToFn =
+  (client: Client, ...path: string[]) =>
+    path.reduce((x, k) => x[k], client)
 
-  // return an async wrapper around the function
-  return (payload: {}) => {
-    return new Promise((resolve, reject) => {
-      method(payload, (err: any, x: MethodResult) => {
-        if (err) return reject(err)
+/**
+ * Get the actual method being called
+ * @param path method path
+ */
+export const leafMethod = (...path: string[]) => path[path.length - 1]
 
-        let response = x[`${mainMethod}Result`]
-        let [code, result] = response.split('|')
 
-        // only ignore codes when raw flag is on
-        if (!result) {
-          return raw ? resolve(response) : reject(new MethodError('1000', x, response))
-        }
+export const asyncMethod: MethodMaker = compose(promisify, pathToFn)
 
-        if (code !== '00')
-          return reject(new MethodError(code, x, result.trim()))
-        else
-          return resolve(result.trim())
-      })
-    })
+export const parseEmbedded = (path: string[], result?: MethodResult): any => {
+  if (!result) return (result: MethodResult) => parseEmbedded(path, result)
+  return result[`${leafMethod(...path)}Result`]
+}
+
+export function parseFormatted(path: string[], result?: MethodResult): any {
+  if (result) {
+    let embedded: string = parseEmbedded(path, result)
+    let [code, data] = embedded.split('|')
+
+    if (!data) {
+      throw new MethodError('1000', result, embedded)
+    }
+
+    if (code !== '00')
+      throw new MethodError(code, result, data.trim())
+    else
+      return data.trim()
   }
+  return (result: MethodResult) => parseFormatted(path, result)
 }

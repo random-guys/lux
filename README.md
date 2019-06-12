@@ -37,10 +37,13 @@ interface Position {
 class MyService extends SoapService {
 
   openMyFridge(pos: Position) {
-    return this.call(false, {
+    return this.callFormatted(false, {
       Longitude: pos.long,
       Latitude: pos.lat
     }, 'House', 'Tools', 'Electric')
   }
 }
 ```
+
+- Method `callEmbedded` doesn't try to check for a status/error code
+- Method `call` returns the method without parsing anything

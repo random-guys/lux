@@ -1,24 +1,9 @@
-/**
- * Describes a soap response from a soap service
- */
-export interface MethodResult {
-  [key: string]: string
+export function compose(...fns: any[]): any {
+  return fns.reduce((fall, f) => {
+    return (...args: any[]) => fall(f(...args))
+  })
 }
 
-/**
- * Error representing failed method calls.
- */
-export class MethodError extends Error {
-  constructor(
-    public readonly code: string,
-    public readonly result: MethodResult,
-    message: string
-  ) {
-    super(message)
-  }
+export function composeAsync(f: (x: any) => any, g: (...xs: any[]) => Promise<any>): any {
+  return async (...args: any[]) => f(await g(...args))
 }
-
-/**
- * SOAP method as an async function
- */
-export type MethodProxy = (arg: {}) => Promise<string>
