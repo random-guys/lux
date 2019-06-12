@@ -1,15 +1,4 @@
 /**
- * Basic Error class since ts decided to fuck up normal
- * exception inheritance
- */
-export class BaseError {
-  constructor(message: string) {
-    Error.apply(this, message);
-  }
-}
-BaseError.prototype = new Error();
-
-/**
  * Describes a soap response from a soap service
  */
 export interface MethodResult {
@@ -19,7 +8,7 @@ export interface MethodResult {
 /**
  * Error representing failed method calls.
  */
-export class MethodError extends BaseError {
+export class MethodError extends Error {
   constructor(
     public readonly code: string,
     public readonly result: MethodResult,

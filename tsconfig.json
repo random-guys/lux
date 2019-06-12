@@ -6,7 +6,7 @@
         "types/*"
       ]
     },
-    "target": "es5",
+    "target": "ES2017",
     "module": "commonjs",
     "lib": [
       "es2017",
