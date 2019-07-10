@@ -1,10 +1,13 @@
 import { Client } from "soap";
 import { asyncMethod, parseFormatted, parseEmbedded } from "./method";
 import { AsyncMethod, MethodResult } from "./types";
+import { unsafeClient } from "./unsafe";
+
+
 
 export class SoapService {
-  private readonly methods = {}
-  constructor(private readonly client: Client) { }
+  protected readonly methods = {}
+  protected client: Client
 
   /**
    * Proxy to `Client.describe`
@@ -35,5 +38,28 @@ export class SoapService {
       this.methods[key] = asyncMethod(this.client, ...path)
     }
     return this.methods[key]
+  }
+}
+
+export class UnsafeSyncService extends SoapService {
+
+  constructor(url: string) {
+    super()
+    unsafeClient(url).then((cl) => {
+      this.client = cl
+    })
+  }
+
+  private assertClient() {
+    if (!this.client) {
+      throw new Error('Client not connected')
+    }
+  }
+}
+
+export class AsyncService extends SoapService {
+  constructor(client: Client) {
+    super()
+    this.client = client
   }
 }
