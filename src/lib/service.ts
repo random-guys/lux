@@ -75,13 +75,12 @@ export class UnsafeSyncService extends SoapService {
   }
 
   protected getMethod(...path: string[]): AsyncMethod {
-    // use existing method definition 
-    const method = super.getMethod(...path)
-
     // wrap in unsafeRun
     return async (payload: any) => {
       // make sure client is initialized
       await this.assertClient()
+      // use existing method definition
+      const method = super.getMethod(...path)
 
       return unsafeRun(async () => {
         return method(payload)
