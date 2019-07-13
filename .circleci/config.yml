@@ -25,6 +25,26 @@ jobs:
           paths:
             - node_modules
             - dist
+   test:
+    working_directory: ~/app
+    docker:
+      - image: circleci/node:10
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - dependency-cache-{{checksum "package.json"}}
+            - dependency-cache-
+      - run:
+          name: Install dependencies
+          command: yarn
+      - save_cache:
+          key: dependency-cache-{{checksum "package.json"}}
+          paths:
+            - node_modules
+      - run:
+          name: Run tests
+          command: yarn test
   deploy:
     working_directory: ~/app
     environment:
@@ -49,6 +69,10 @@ workflows:
   build-and-deploy:
     jobs:
       - build
+      - test:
+          context: global
+          requires:
+            - build
       - deploy:
           context: global
           requires:
