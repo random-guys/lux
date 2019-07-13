@@ -25,7 +25,7 @@ jobs:
           paths:
             - node_modules
             - dist
-   test:
+  test:
     working_directory: ~/app
     docker:
       - image: circleci/node:10
