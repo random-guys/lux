@@ -1,7 +1,7 @@
 import { Client } from "soap";
 import { asyncMethod, parseFormatted, parseEmbedded } from "./method";
 import { AsyncMethod, MethodResult } from "./types";
-import { unsafeClient } from "./unsafe";
+import { unsafeClient, unsafeRun } from "./unsafe";
 
 
 
@@ -45,14 +45,43 @@ export class UnsafeSyncService extends SoapService {
 
   constructor(url: string) {
     super()
-    unsafeClient(url).then((cl) => {
-      this.client = cl
+
+    // connect without security
+    unsafeRun(async () => {
+      await unsafeClient(url).then((cl) => {
+        this.client = cl
+      })
     })
   }
 
   private assertClient() {
     if (!this.client) {
       throw new Error('Client not connected')
+    }
+  }
+
+  getDescription() {
+    // make sure client is initialized
+    this.assertClient()
+
+    // defer to parent class
+    return unsafeRun(async () => {
+      return super.getDescription()
+    })
+  }
+
+  protected getMethod(...path: string[]): AsyncMethod {
+    // make sure client is initialized
+    this.assertClient()
+
+    // use existing method definition 
+    const method = super.getMethod(...path)
+
+    // wrap in unsafeRun
+    return (payload: any) => {
+      return unsafeRun(async () => {
+        return method(payload)
+      })
     }
   }
 }
