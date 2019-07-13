@@ -42,27 +42,31 @@ export class SoapService {
 }
 
 export class UnsafeSyncService extends SoapService {
-
+  private queue: Promise<void>
   constructor(url: string) {
     super()
 
     // connect without security
-    unsafeRun(async () => {
-      await unsafeClient(url).then((cl) => {
+    this.queue = unsafeRun(async () => {
+      return await unsafeClient(url).then((cl) => {
         this.client = cl
       })
     })
   }
 
-  private assertClient() {
+  private async assertClient() {
+    // wait for connection function
+    await this.queue
+
+    // make sure client actually
     if (!this.client) {
       throw new Error('Client not connected')
     }
   }
 
-  getDescription() {
+  async getDescription() {
     // make sure client is initialized
-    this.assertClient()
+    await this.assertClient()
 
     // defer to parent class
     return unsafeRun(async () => {
@@ -71,14 +75,14 @@ export class UnsafeSyncService extends SoapService {
   }
 
   protected getMethod(...path: string[]): AsyncMethod {
-    // make sure client is initialized
-    this.assertClient()
-
     // use existing method definition 
     const method = super.getMethod(...path)
 
     // wrap in unsafeRun
-    return (payload: any) => {
+    return async (payload: any) => {
+      // make sure client is initialized
+      await this.assertClient()
+
       return unsafeRun(async () => {
         return method(payload)
       })
