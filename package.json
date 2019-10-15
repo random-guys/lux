@@ -1,6 +1,6 @@
 {
   "name": "@random-guys/lux",
-  "version": "3.0.4",
+  "version": "3.1.0",
   "description": "Abstract a soap service as a class",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,12 +12,14 @@
   "author": "Olakunle Arewa <olakunle.arewa@gmail.com>",
   "license": "ISC",
   "dependencies": {
+    "bunyan": "^1.8.12",
     "soap": "^0.27.1"
   },
   "files": [
     "dist/"
   ],
   "devDependencies": {
+    "@types/bunyan": "^1.8.6",
     "@types/jest": "^24.0.12",
     "@types/node": "^10.14.4",
     "@types/supertest": "^2.0.7",

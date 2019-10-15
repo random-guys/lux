@@ -76,7 +76,7 @@ workflows:
       - deploy:
           context: global
           requires:
-            - build
+            - test
           filters:
             branches:
               only: master
