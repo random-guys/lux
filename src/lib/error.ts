@@ -1,4 +1,4 @@
-import { MethodResult } from "./types";
+import { MethodResult } from './types';
 
 /**
  * Error representing failed method calls.
@@ -9,6 +9,6 @@ export class MethodError extends Error {
     public readonly result: MethodResult,
     message: string
   ) {
-    super(message)
+    super(message);
   }
 }
