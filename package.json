@@ -1,6 +1,6 @@
 {
   "name": "@random-guys/lux",
-  "version": "3.0.5",
+  "version": "3.1.0",
   "description": "Abstract a soap service as a class",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
