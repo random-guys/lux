@@ -2,6 +2,7 @@ import { Client } from 'soap';
 import { asyncMethod, parseFormatted, parseEmbedded } from './method';
 import { AsyncMethod, MethodResult } from './types';
 import { unsafeClient, unsafeRun } from './unsafe';
+import { timeout, retry } from './utils';
 import Logger = require('bunyan');
 
 export class SoapService {
@@ -42,19 +43,31 @@ export class SoapService {
 
 export class UnsafeSyncService extends SoapService {
   private queue: Promise<void>;
-  constructor(url: string, logger: Logger) {
+  constructor(url: string, logger: Logger, canRetry = false) {
     super();
 
     // connect without security
-    this.queue = unsafeRun(async () => {
-      return await unsafeClient(url).then(
-        cl => {
-          this.client = cl;
-          logger.info(`Successfully connect to ${url}`);
-        },
-        err => logger.error({ err })
-      );
+    this.queue = unsafeRun(async () => this.connect(url, canRetry, logger));
+  }
+
+  private async connect(
+    url: string,
+    canRetry: boolean,
+    logger: Logger,
+    mill = 3000
+  ) {
+    if (!canRetry) {
+      return await this.createClient(url, logger);
+    }
+
+    retry(logger, () => {
+      return this.createClient(url, logger);
     });
+  }
+
+  private async createClient(url: string, logger: Logger) {
+    this.client = await unsafeClient(url);
+    logger.info(`${this.constructor.name} is connected`);
   }
 
   private async assertClient() {
