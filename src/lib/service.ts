@@ -21,7 +21,7 @@ export class SoapService {
     return method(arg);
   }
 
-  callEmbedded(arg: {}, ...path: string[]): Promise<string> {
+  callEmbedded<T>(arg: {}, ...path: string[]): Promise<T> {
     let method = this.getMethod(...path);
     return method(arg).then(parseEmbedded(path));
   }
