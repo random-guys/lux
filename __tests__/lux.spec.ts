@@ -5,7 +5,7 @@ const OTP_ENDPOINT =
   "https://pass.sterling.ng/SxSService/OTPCentralService.asmx?WSDL";
 
 describe("AutoService", () => {
-  jest.setTimeout(30000);
+  jest.setTimeout(10000);
   let service: AutoService;
 
   beforeEach(() => {
@@ -19,7 +19,6 @@ describe("AutoService", () => {
 
   it("should return a t", async () => {
     const description = await service.getDescription();
-    console.log(description);
     expect(description).toBeTruthy();
   });
 
