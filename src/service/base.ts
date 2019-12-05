@@ -1,41 +1,68 @@
-import { Client } from 'soap';
-import { asyncMethod, parseFormatted, parseEmbedded } from './method';
-import { AsyncMethod, MethodResult } from './types';
-import { unsafeClient, unsafeRun } from './unsafe';
-import { timeout, retry } from './utils';
-import Logger = require('bunyan');
+import Logger from "bunyan";
+import { Client } from "soap";
+import { unsafeClient, unsafeRun } from "../unsafe";
+import {
+  AsyncMethod,
+  createAsyncMethod,
+  MethodPath,
+  MethodResult,
+  parseEmbedded,
+  parseFormatted
+} from "../methods";
+import { retry } from "../utils";
 
 export class SoapService {
   protected readonly methods = {};
   protected client: Client;
 
   /**
-   * Proxy to `Client.describe`
+   * `getDescription` proxies to `Client.describe`
    */
   getDescription(): Promise<any> {
     return this.client.describe();
   }
 
-  call(arg: {}, ...path: string[]): Promise<MethodResult> {
+  /**
+   * `call` runs a method and returns the parsed XML directly
+   * @param arg map of SOAP arguments
+   * @param path path to SOAP method
+   */
+  call(arg: object, ...path: MethodPath): Promise<MethodResult> {
     let method = this.getMethod(...path);
     return method(arg);
   }
 
-  callEmbedded<T>(arg: {}, ...path: string[]): Promise<T> {
+  /**
+   * `callEmbedded` is like `call` but it extracts its result from
+   * it's parent `${method_name}Result`
+   * @param arg method argument
+   * @param path method path
+   */
+  callEmbedded<T>(arg: object, ...path: MethodPath): Promise<T> {
     let method = this.getMethod(...path);
     return method(arg).then(parseEmbedded(path));
   }
 
-  callFormatted(arg: {}, ...path: string[]): Promise<string> {
+  /**
+   * `callFormatted` is like `callEmbedded` with response code inside the
+   * extracted result in the following format `${error_code} | ${result}`
+   * @param arg method argument
+   * @param path method path
+   */
+  callFormatted(arg: object, ...path: MethodPath): Promise<string> {
     let method = this.getMethod(...path);
     return method(arg).then(parseFormatted(path));
   }
 
-  protected getMethod(...path: string[]): AsyncMethod {
-    let key = path.join('.');
+  /**
+   * `getMethod` returns a function that asynchronously calls a SOAP method
+   * @param path method path
+   */
+  protected getMethod(...path: MethodPath): AsyncMethod {
+    let key = path.join(".");
     // cache method for later use
     if (!this.methods[key]) {
-      this.methods[key] = asyncMethod(this.client, ...path);
+      this.methods[key] = createAsyncMethod(this.client, ...path);
     }
     return this.methods[key];
   }
@@ -76,7 +103,7 @@ export class UnsafeSyncService extends SoapService {
 
     // make sure client actually
     if (!this.client) {
-      throw new Error('Client not connected');
+      throw new Error("Client not connected");
     }
   }
 

@@ -1,14 +1,18 @@
 # lux
 
-Classes as services, class methods as service methods
+Calling methods using `node-soap` could be something sometimes, so we replace it will
+classes and methods
 
-## How to install?
+## How to install
 
-`yarn add @random-guys/lux`
+```sh
+yarn add @random-guys/lux
+```
 
-## How does it work?
+## How does it work
 
 Assume a service request
+
 ```xml
 <House>
   <Tools>
@@ -21,6 +25,7 @@ Assume a service request
 ```
 
 With this response
+
 ```xml
 <ElectricResult>
   <response> 00 | Open successful</response>
@@ -28,19 +33,23 @@ With this response
 ```
 
 ```ts
-
 interface Position {
-  long: number
-  lat: number
+  long: number;
+  lat: number;
 }
 
-class MyService extends SoapService {
-
+class MyService extends AutoService {
   openMyFridge(pos: Position) {
-    return this.callFormatted(false, {
-      Longitude: pos.long,
-      Latitude: pos.lat
-    }, 'House', 'Tools', 'Electric')
+    return this.callFormatted(
+      false,
+      {
+        Longitude: pos.long,
+        Latitude: pos.lat
+      },
+      "House",
+      "Tools",
+      "Electric"
+    );
   }
 }
 ```

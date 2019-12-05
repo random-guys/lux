@@ -1,30 +1,34 @@
-import { UnsafeSyncService } from '../src';
-import { createLogger } from 'bunyan';
+import { createLogger } from "bunyan";
+import { AutoService } from "../src/service/auto";
 
-const endpoint =
-  'https://pass.sterling.ng/SxSService/OTPCentralService.asmx?WSDL';
-const namespace = ['OTPCentralService', 'OTPCentralServiceSoap'];
-const payload = {
-  username: 'fakeUser',
-  hashkey: '121212121212121211121',
-  otp: '999999'
-};
+const OTP_ENDPOINT =
+  "https://pass.sterling.ng/SxSService/OTPCentralService.asmx?WSDL";
 
-describe('Unsafe Async Ops', () => {
-  const service = new UnsafeSyncService(
-    endpoint,
-    createLogger({
-      name: 'test-logger'
-    })
-  );
+describe("AutoService", () => {
+  jest.setTimeout(10000);
+  let service: AutoService;
 
-  it('should describe the world', async () => {
+  beforeEach(() => {
+    service = new AutoService(
+      OTP_ENDPOINT,
+      createLogger({
+        name: "test-logger"
+      })
+    );
+  });
+
+  it("should return a t", async () => {
     const description = await service.getDescription();
     expect(description).toBeTruthy();
   });
 
-  it('should describe the world', async () => {
-    const result = await service.call(payload, ...namespace, 'OtpValidation');
+  it("should describe the world", async () => {
+    const result = await service.call(
+      { username: "fakeUser", hashkey: "121212121212121211121", otp: "999999" },
+      "OTPCentralService",
+      "OTPCentralServiceSoap",
+      "OtpValidation"
+    );
     expect(result).toBeTruthy();
   });
 });
