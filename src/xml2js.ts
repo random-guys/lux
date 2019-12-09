@@ -10,7 +10,8 @@ export function recursiveXml2js(data: any) {
   } else if (Array.isArray(data)) {
     return data.map(recursiveXml2js);
   } else if (isObject(data)) {
-    return mapValues(data, recursiveXml2js);
+    const { _attributes, ...rest } = data;
+    return mapValues(rest, recursiveXml2js);
   }
   throw new Error(`Unknown xml case: ${data}`);
 }

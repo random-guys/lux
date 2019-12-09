@@ -1,74 +1,127 @@
 import axios, { AxiosInstance } from "axios";
-import { js2xml2, xmlConvOpt } from "../xml2js";
+import Logger from "bunyan";
+import get from "lodash/get";
+import {
+  js2xml2,
+  jsConvOpt,
+  recursiveXml2js,
+  xml2js2,
+  xmlConvOpt
+} from "../xml2js";
 
+export interface RawServiceConfig {
+  /**
+   * Basic Authentication to add to request `Authorization` header
+   */
+  basicAuth?: {
+    username: string;
+    password: string;
+  };
+  /**
+   * Namespaces to be declared at message root
+   */
+  namespaces?: object;
+  /**
+   * Tags to be added to the `<soapenv:Header>`
+   */
+  headers?: object;
+  /**
+   * Log requests and responses. Use wisely
+   */
+  debug?: boolean;
+}
+
+/**
+ * `RawService` is a wrapper around axios for making SOAP requests. Unlike the `soap`
+ * library, it doesn't attempt to connect or parse the entire service. Use this when any
+ * of the other service doesn't work.
+ */
 export class RawService {
+  /**
+   * Configured axios instance for making all the requests. Use this instance to set defaults
+   */
   protected axios: AxiosInstance;
-  constructor(
-    url: string,
-    credential?: Credential,
-    private namespaces?: object,
-    private headers?: object
-  ) {
+  private namespaceAttrs: object = {
+    "xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/"
+  };
+  private config: RawServiceConfig = { debug: false };
+
+  /**
+   * Create a new RawService
+   * @param url None WSDL URL of the service
+   * @param config configuration for this RawService instance
+   */
+  constructor(url: string, config?: RawServiceConfig) {
     this.axios = axios.create({
       baseURL: url,
-      headers: {
-        "Content-Type": "text/xml"
-      },
+      headers: { "Content-Type": "text/xml" },
       responseType: "text"
     });
+    this.config = { ...this.config, ...config };
 
-    if (credential) {
-      const authCode = Buffer.from(
-        `${credential.username}:${credential.password}`
-      ).toString("base64");
-      this.axios.defaults.headers["Authorization"] = `Basic ${authCode}`;
+    if (this.config.basicAuth) {
+      this.basicAuth(this.config.basicAuth);
+    }
+
+    if (this.config.namespaces) {
+      this.customNamespaces(this.config.namespaces);
     }
   }
 
-  protected toSoap(method: string, arg: object) {
+  private basicAuth(auth: any) {
+    const authCode = Buffer.from(`${auth.username}:${auth.password}`);
+    this.axios.defaults.headers["Authorization"] = `Basic ${authCode.toString(
+      "base64"
+    )}`;
+  }
+
+  private customNamespaces(namespaces: object) {
+    Object.keys(namespaces).forEach(key => {
+      this.namespaceAttrs[`xmlns:${key}`] = namespaces[key];
+    });
+  }
+
+  protected toSoap(method: string, data: object) {
     return {
       "soapenv:Envelope": {
-        _attributes: {
-          "xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/",
-          ...parseNamespaces(this.namespaces)
-        },
-        "soapenv:Header": this.headers || {},
+        _attributes: this.namespaceAttrs,
+        "soapenv:Header": this.config.headers || {},
         "soapenv:Body": {
-          [`${method}`]: arg
+          [`${method}`]: data
         }
       }
     };
   }
 
-  protected async call(method: string, arg: object) {
-    const request = js2xml2(xmlConvOpt, this.toSoap(method, arg));
+  protected async call(method: string, data: object) {
+    const request = js2xml2(xmlConvOpt, this.toSoap(method, data));
     try {
-      const response = await this.axios.post("", request);
-      // console.log(response);
+      if (this.config.debug) {
+        console.log(request);
+      }
+      const { data } = await this.axios.post("", request);
+
+      if (this.config.debug) {
+        console.log(data);
+      }
+
+      return recursiveXml2js(xml2js2(jsConvOpt, data));
     } catch (err) {
-      console.log(request);
-      console.log(err.response.data);
+      const source = recursiveXml2js(xml2js2(jsConvOpt, err.response.data));
+      throw new RawServiceError("Gaddam", getSoapFault(source));
     }
   }
 }
 
-export interface Credential {
-  username: string;
-  password: string;
+export class RawServiceError extends Error {
+  readonly source_error: any;
+
+  constructor(message: string, source: any) {
+    super(message);
+    this.source_error = source;
+  }
 }
 
-/**
- *
- * @param namespaces
- */
-function parseNamespaces(namespaces?: object) {
-  const result = {};
-
-  if (namespaces) {
-    Object.keys(namespaces).forEach(key => {
-      result[`xmlns:${key}`] = namespaces[key];
-    });
-  }
-
-  return result;
+export function getSoapFault(data: any) {
+  return get(data, "soap:Envelope.soap:Body.soap:Fault");
 }
