@@ -1,8 +1,7 @@
 import { createLogger } from "bunyan";
 import { AutoService } from "../src/service/auto";
 
-const OTP_ENDPOINT =
-  "https://pass.sterling.ng/SxSService/OTPCentralService.asmx?WSDL";
+const OTP_ENDPOINT = "http://www.dneonline.com/calculator.asmx?WSDL";
 
 describe("AutoService", () => {
   jest.setTimeout(10000);
@@ -23,12 +22,7 @@ describe("AutoService", () => {
   });
 
   it("should describe the world", async () => {
-    const result = await service.call(
-      { username: "fakeUser", hashkey: "121212121212121211121", otp: "999999" },
-      "OTPCentralService",
-      "OTPCentralServiceSoap",
-      "OtpValidation"
-    );
-    expect(result).toBeTruthy();
+    const result = await service.callEmbedded({ intA: 1, intB: 2 }, "Add");
+    expect(result).toBe(3);
   });
 });
