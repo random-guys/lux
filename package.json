@@ -12,8 +12,11 @@
   "author": "Olakunle Arewa <olakunle.arewa@gmail.com>",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.19.0",
     "bunyan": "^1.8.12",
-    "soap": "^0.27.1"
+    "lodash": "^4.17.15",
+    "soap": "^0.27.1",
+    "xml-js": "^1.6.11"
   },
   "files": [
     "dist/"
@@ -21,6 +24,7 @@
   "devDependencies": {
     "@types/bunyan": "^1.8.6",
     "@types/jest": "^24.0.12",
+    "@types/lodash": "^4.14.149",
     "@types/node": "^10.14.4",
     "@types/supertest": "^2.0.7",
     "jest": "^24.8.0",
