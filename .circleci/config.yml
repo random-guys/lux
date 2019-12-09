@@ -72,6 +72,7 @@ workflows:
               ignore:
                 - master
                 - release
+                - develop
       - test:
           requires:
             - build
@@ -80,6 +81,7 @@ workflows:
               ignore:
                 - master
                 - release
+                - develop
       - deploy:
           context: library
           filters:
