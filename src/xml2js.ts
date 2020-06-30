@@ -4,7 +4,9 @@ import mapValues from "lodash/mapValues";
 import { Element, ElementCompact, js2xml, Options, xml2js } from "xml-js";
 
 export function recursiveXml2js(data: any) {
-  if (data._text) {
+  if (data == null || Object.keys(data).length === 0) {
+    return null;
+  } else if (data._text) {
     // text node
     return data._text;
   } else if (Array.isArray(data)) {
